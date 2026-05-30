@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>蜂巢游戏 · 林深</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=Share+Tech+Mono&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ===================== CSS变量 · 四阶段主题 ===================== */
+:root {
+  --bg: #0d0d14;
+  --bg2: #13131f;
+  --bg3: #1a1a28;
+  --surface: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.10);
+  --border2: rgba(255,255,255,0.18);
+  --text: #e8e4f0;
+  --text2: #c0b8dc;
+  --text3: #a098c0;
+  --accent: #8b7fc7;
+  --accent2: #6b9fd4;
+  --accent-warm: #c4956a;
+  --danger: #c46a6a;
+  --linshen-bubble: rgba(30,28,50,0.95);
+  --linshen-border: rgba(139,127,199,0.25);
+  --player-bubble: rgba(28,38,55,0.95);
+  --player-border: rgba(107,159,212,0.30);
+  --guard-color: #c46a6a;
+  --open-color: #6b9fd4;
+  --narrator-color: #b0a4cc;
+  --env-color: #9a8ebe;
+  --sidebar-bg: rgba(10,10,20,0.97);
+  --progress-bg: rgba(255,255,255,0.07);
+  --scrollbar: rgba(139,127,199,0.25);
+  --transition-theme: background 1.5s ease, color 0.8s ease, border-color 0.8s ease;
+}
+.theme-1 { --bg: #0f0d13; --bg2: #16121c; --bg3: #1e1828; --accent: #9d8fd4; --accent-warm: #c4956a; --linshen-bubble: rgba(32,26,48,0.95); --linshen-border: rgba(157,143,212,0.28); --guard-color: #b07070; --narrator-color: #b2a4cc; --env-color: #a092c0; }
+.theme-2 { --bg: #100e14; --bg2: #181420; --bg3: #221c30; --accent: #b09fdc; --accent-warm: #c8a070; --linshen-bubble: rgba(34,28,52,0.95); --linshen-border: rgba(176,159,220,0.32); --guard-color: #907878; --narrator-color: #c0b2dc; --env-color: #b0a2d0; --text2: #c8c0e0; }
+.theme-3 { --bg: #110f16; --bg2: #1a1624; --bg3: #241e34; --accent: #c4b4e8; --accent-warm: #d4aa80; --linshen-bubble: rgba(36,30,56,0.95); --linshen-border: rgba(196,180,232,0.35); --guard-color: rgba(150,130,160,0.5); --narrator-color: #d0c4e8; --env-color: #c0b4e0; --text2: #d8d0f0; --text3: #b8acd8; }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  font-weight: 400;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  transition: var(--transition-theme);
+  position: relative;
+}
+/* 封面页 */
+#cover-screen {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 2000;
+  padding: 32px 24px;
+}
+.cover-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(139,127,199,0.08) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(107,159,212,0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+.cover-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+.cover-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 38px;
+  font-weight: 300;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+.cover-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  margin-bottom: 36px;
+  opacity: 0.8;
+}
+.cover-story {
+  max-width: 380px;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 24px 20px;
+  margin-bottom: 28px;
+  position: relative;
+}
+.cover-story::before {
+  content: '';
+  position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.5;
+}
+.cover-story p {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.9;
+  color: var(--text2);
+  margin-bottom: 10px;
+}
+.cover-story p:last-child { margin-bottom: 0; }
+.cover-story em { color: var(--accent); font-style: normal; }
+.cover-name-row, .cover-api-row {
+  max-width: 380px; width: 100%;
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 20px;
+}
+.cover-name-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+.cover-name-input, .cover-api-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom-color: var(--border2);
+  color: var(--text);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 16px;
+  padding: 12px 14px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+.cover-name-input:focus, .cover-api-input:focus { border-color: var(--accent); }
+.cover-api-input { font-family: 'Share Tech Mono', monospace; font-size: 13px; letter-spacing: 1px; }
+.cover-btns {
+  max-width: 380px; width: 100%;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.cover-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 3px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-transform: uppercase;
+}
+.cover-btn:hover, .cover-btn:active { background: var(--accent); color: var(--bg); }
+.cover-btn.secondary { border-color: var(--border2); color: var(--text3); }
+.cover-btn.secondary:hover { border-color: var(--text2); color: var(--text2); background: transparent; }
+/* 主游戏界面 */
+#game-screen {
+  display: none;
+  position: fixed; inset: 0;
+  flex-direction: column;
+  background: var(--bg);
+  transition: var(--transition-theme);
+}
+/* 顶部栏 */
+#top-bar {
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px 8px;
+  position: relative;
+  z-index: 100;
+}
+.top-row1 {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.game-logo {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  opacity: 0.9;
+}
+.top-phase {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--text3);
+  border: 1px solid var(--border);
+  padding: 3px 8px;
+}
+.stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.stat-item { display: flex; flex-direction: column; gap: 3px; }
+.stat-label {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.stat-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+.stat-num {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--text2);
+}
+.stat-bar {
+  height: 2px;
+  background: var(--progress-bg);
+  position: relative;
+  overflow: visible;
+}
+.stat-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+}
+.stat-fill::after {
+  content: '';
+  position: absolute; right: -2px; top: -2px;
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--accent);
+}
+.stat-fill.red { background: var(--danger); }
+.stat-fill.red::after { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+/* 主线事件横幅 */
+#event-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: rgba(10,8,20,0.98);
+  border-bottom: 1px solid var(--danger);
+  padding: 10px 16px;
+  z-index: 500;
+  transform: translateY(-100%);
+  transition: transform 0.4s ease;
+  display: flex; align-items: center; gap: 10px;
+}
+#event-banner.show { transform: translateY(0); }
+.banner-dot {
+  width: 6px; height: 6px;
+  background: var(--danger);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: pulse 1s ease infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+.banner-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--danger);
+  flex: 1;
+}
+.banner-close {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  cursor: pointer;
+  padding: 4px;
+}
+/* 对话区 */
+#chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+#chat-area::-webkit-scrollbar { width: 3px; }
+#chat-area::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
+/* 环境/旁白/系统 */
+.env-block, .narrator-block, .system-block {
+  text-align: center;
+  padding: 10px 16px;
+  margin: 8px 0;
+  animation: fadeIn 0.5s ease;
+}
+.env-text, .narrator-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 12px;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--env-color);
+  line-height: 1.7;
+}
+.narrator-text { color: var(--narrator-color); }
+.system-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--text3);
+  opacity: 0.8;
+}
+/* 对话气泡 */
+.msg-row {
+  display: flex;
+  flex-direction: column;
+  margin: 6px 0;
+  animation: slideUp 0.35s ease;
+}
+.msg-row.linshen { align-items: flex-start; }
+.msg-row.player { align-items: flex-end; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.msg-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  margin-bottom: 4px;
+  padding: 0 4px;
+}
+.msg-name.linshen { color: var(--accent); }
+.msg-name.player { color: var(--accent2); }
+.bubble-wrap { position: relative; max-width: 78%; }
+.bubble {
+  padding: 11px 14px;
+  border-radius: 2px;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+.bubble.linshen {
+  background: var(--linshen-bubble);
+  border: 1px solid var(--linshen-border);
+  border-radius: 2px 12px 12px 2px;
+}
+.bubble.player {
+  background: var(--player-bubble);
+  border: 1px solid var(--player-border);
+  border-radius: 12px 2px 2px 12px;
+}
+.bubble-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.75;
+  color: var(--text);
+}
+/* 动作描写展开区 */
+.action-desc {
+  display: none;
+  margin-top: 6px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.025);
+  border-left: 2px solid var(--linshen-border);
+}
+.action-desc.open { display: block; }
+.action-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 12px;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--env-color);
+  line-height: 1.8;
+}
+.expand-hint {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 4px;
+  letter-spacing: 1px;
+  opacity: 0.7;
+}
+.player-action {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 12px;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text3);
+  margin-top: 5px;
+  padding: 0 4px;
+  text-align: right;
+  line-height: 1.7;
+  cursor: pointer;
+}
+.typing-indicator {
+  display: flex; gap: 5px; align-items: center;
+  padding: 11px 14px;
+  background: var(--linshen-bubble);
+  border: 1px solid var(--linshen-border);
+  border-radius: 2px 12px 12px 2px;
+  width: fit-content;
+}
+.typing-indicator span {
+  width: 5px; height: 5px;
+  background: var(--accent);
+  border-radius: 50%;
+  opacity: 0.4;
+  animation: typingDot 1.2s ease infinite;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingDot { 0%,80%,100%{opacity:0.2;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
+.linshen-notify {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
+  margin: 8px auto;
+  background: rgba(139,127,199,0.08);
+  border: 1px solid rgba(139,127,199,0.2);
+  width: fit-content;
+  max-width: 260px;
+  animation: fadeIn 0.4s ease;
+}
+.notify-dot {
+  width: 5px; height: 5px;
+  background: var(--accent);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.notify-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--accent);
+  opacity: 0.9;
+}
+/* 底部区域 */
+#bottom-area {
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+}
+#info-bar {
+  display: flex; align-items: center;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.info-item {
+  display: flex; align-items: center; gap: 5px;
+}
+.info-icon { font-size: 12px; opacity: 0.7; }
+.info-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text2);
+  letter-spacing: 0.5px;
+}
+.info-divider {
+  width: 1px; height: 12px;
+  background: var(--border2);
+  flex-shrink: 0;
+}
+.timer-warn { color: var(--danger) !important; animation: pulse 1s ease infinite; }
+/* Tab切换 */
+#tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+#action-tab {
+  padding: 12px 14px;
+  max-height: 280px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.section-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-label::after {
+  content: '';
+  flex: 1; height: 1px;
+  background: var(--border);
+}
+/* 场所分区 */
+.zone-group { margin-bottom: 10px; }
+.zone-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  margin-bottom: 0;
+  transition: all 0.2s;
+}
+.zone-header:active { background: rgba(255,255,255,0.06); }
+.zone-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--text2);
+  text-transform: uppercase;
+}
+.zone-arrow {
+  font-size: 10px;
+  color: var(--text3);
+  transition: transform 0.2s;
+}
+.zone-arrow.open { transform: rotate(180deg); }
+.zone-locs {
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 8px 0 0;
+}
+.zone-locs.open { display: grid; }
+.loc-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 9px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+.loc-btn:active { transform: scale(0.97); }
+.loc-btn.active {
+  border-color: var(--accent);
+  background: rgba(139,127,199,0.08);
+}
+.loc-btn.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.loc-name {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  color: var(--text);
+  display: block;
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+.loc-hint, .loc-prob {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--text2);
+  letter-spacing: 0.5px;
+}
+.loc-prob {
+  position: absolute; top: 6px; right: 8px;
+  color: var(--accent);
+  opacity: 0.7;
+}
+.time-row, .npc-row {
+  display: flex; gap: 6px;
+  margin-bottom: 10px;
+}
+.time-btn, .npc-btn {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  padding: 8px 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.time-btn.active {
+  border-color: var(--accent2);
+  color: var(--accent2);
+  background: rgba(107,159,212,0.06);
+}
+.npc-btn {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 9px 8px;
+}
+.npc-btn:hover, .npc-btn:active {
+  border-color: var(--accent-warm);
+  color: var(--accent-warm);
+  background: rgba(196,149,106,0.06);
+}
+.go-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.go-btn:active { background: var(--accent); color: var(--bg); }
+.go-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+/* 对话Tab */
+#dialogue-tab {
+  padding: 10px 14px 12px;
+  display: none;
+}
+.input-wrap {
+  display: flex; gap: 8px; align-items: flex-end;
+}
+.dialogue-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom-color: var(--border2);
+  color: var(--text);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.6;
+  padding: 10px 12px;
+  resize: none;
+  outline: none;
+  min-height: 44px;
+  max-height: 120px;
+  transition: border-color 0.2s;
+  border-radius: 2px;
+}
+.dialogue-input:focus { border-color: var(--accent); }
+.dialogue-input::placeholder { color: var(--text3); font-size: 13px; font-style: italic; }
+.send-btn {
+  background: var(--accent);
+  border: none;
+  color: var(--bg);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+.send-btn:active { opacity: 0.8; transform: scale(0.96); }
+.send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.input-hint {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 5px;
+  letter-spacing: 0.5px;
+  opacity: 0.7;
+}
+/* 侧边栏 */
+#sidebar-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 150;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+#sidebar-overlay.open { display: block; opacity: 1; }
+#sidebar {
+  position: fixed;
+  top: 0; right: -100%;
+  width: 88%;
+  max-width: 360px;
+  height: 100%;
+  background: var(--sidebar-bg);
+  border-left: 1px solid var(--border);
+  z-index: 200;
+  display: flex; flex-direction: column;
+  transition: right 0.35s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+}
+#sidebar.open { right: 0; }
+.sidebar-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sidebar-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.sidebar-close {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 18px;
+  color: var(--text3);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+.sidebar-tabs::-webkit-scrollbar { display: none; }
+.stab {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--text3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.stab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+  -webkit-overflow-scrolling: touch;
+}
+.sidebar-content::-webkit-scrollbar { width: 3px; }
+.sidebar-content::-webkit-scrollbar-thumb { background: var(--scrollbar); }
+.sidebar-section { display: none; }
+.sidebar-section.active { display: block; }
+/* 情报页样式 */
+.intel-group { margin-bottom: 20px; }
+.intel-group-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.intel-item {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.intel-key {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  margin-bottom: 3px;
+  letter-spacing: 0.5px;
+}
+.intel-val {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text2);
+  line-height: 1.7;
+}
+.intel-locked {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  opacity: 0.4;
+  letter-spacing: 2px;
+}
+/* 主线进度 */
+.mainline-item {
+  display: flex; gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.mainline-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--border2);
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+.mainline-dot.done { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.mainline-dot.danger { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+.mainline-title {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  margin-bottom: 3px;
+}
+.mainline-desc {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--text3);
+  line-height: 1.6;
+}
+/* 收藏页 */
+.collect-item {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.collect-quote {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--text2);
+  line-height: 1.75;
+  margin-bottom: 5px;
+}
+.collect-quote::before { content: '"'; color: var(--accent); }
+.collect-quote::after { content: '"'; color: var(--accent); }
+.collect-time {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.5px;
+}
+.empty-tip {
+  text-align: center;
+  padding: 40px 0;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  color: var(--text3);
+  font-style: italic;
+}
+/* 日记页 */
+.diary-input-area {
+  margin-bottom: 16px;
+}
+.diary-textarea {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.7;
+  padding: 10px 12px;
+  resize: none;
+  outline: none;
+  height: 80px;
+  margin-bottom: 8px;
+  transition: border-color 0.2s;
+}
+.diary-textarea:focus { border-color: var(--accent); }
+.diary-save-btn {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text3);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.diary-save-btn:hover { border-color: var(--accent); color: var(--accent); }
+.diary-entry {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.diary-date {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--accent);
+  margin-bottom: 5px;
+  letter-spacing: 0.5px;
+}
+.diary-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text2);
+  line-height: 1.75;
+}
+/* NPC联系记录 */
+.npc-record {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.npc-record-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 6px;
+}
+.npc-record-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--accent-warm);
+  letter-spacing: 1px;
+}
+.npc-record-date {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+}
+.npc-record-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text2);
+  line-height: 1.7;
+}
+/* 人物档案 */
+.char-profile { margin-bottom: 20px; }
+.char-profile-name {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.char-profile-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.profile-row {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.profile-key {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  min-width: 56px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+.profile-val {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text2);
+  line-height: 1.7;
+}
+/* 林深状态条 */
+.linshen-status { margin-top: 16px; }
+.ls-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+.ls-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--text3);
+  text-transform: uppercase;
+  min-width: 44px;
+}
+.ls-track {
+  flex: 1; height: 2px;
+  background: var(--progress-bg);
+  position: relative;
+}
+.ls-dot {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--guard-color);
+  box-shadow: 0 0 6px var(--guard-color);
+  transition: left 0.8s cubic-bezier(0.4,0,0.2,1), background 1s ease;
+}
+.ls-dot.open { background: var(--open-color); box-shadow: 0 0 6px var(--open-color); }
+.ls-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--text2);
+  min-width: 28px;
+  text-align: right;
+}
+.mood-badge {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--accent);
+  border: 1px solid rgba(139,127,199,0.25);
+  padding: 5px 10px;
+  letter-spacing: 1px;
+}
+/* 结局页、错误提示等 */
+#ending-screen {
+  display: none;
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 3000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  gap: 24px;
+  overflow-y: auto;
+}
+.ending-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+.ending-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.4;
+}
+.ending-body {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--text2);
+  text-align: center;
+  line-height: 2;
+  max-width: 340px;
+  white-space: pre-line;
+}
+.ending-score {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--text3);
+}
+.ending-btns {
+  display: flex; flex-direction: column; gap: 10px;
+  width: 100%; max-width: 300px;
+}
+.ending-btn {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  padding: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  text-align: center;
+}
+.ending-btn:hover { border-color: var(--accent); color: var(--accent); }
+#error-toast {
+  position: fixed;
+  bottom: 80px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(20,10,10,0.97);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 10px 20px;
+  z-index: 1000;
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: 90vw;
+  text-align: center;
+}
+#error-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+#timer-warning {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 900;
+  align-items: center; justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+  padding: 32px;
+}
+.tw-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--danger);
+  text-align: center;
+}
+.tw-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--text2);
+  text-align: center;
+  line-height: 1.9;
+}
+.tw-btn {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  padding: 12px 32px;
+  cursor: pointer;
+}
+#review-modal {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 3500;
+  flex-direction: column;
+}
+.review-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  flex-shrink: 0;
+}
+.review-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--accent);
+}
+.review-close {
+  font-size: 20px;
+  color: var(--text3);
+  cursor: pointer;
+  padding: 4px;
+}
+#review-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+  -webkit-overflow-scrolling: touch;
+}
+</style>
+</head>
+<body>
+
+<!-- ========== 封面页 ========== -->
+<div id="cover-screen">
+  <div class="cover-bg"></div>
+  <div class="cover-tag">// HIVE_GAME · INIT</div>
+  <div class="cover-title">蜂巢游戏</div>
+  <div class="cover-sub">KARMA</div>
+  <div class="cover-story">
+    <p>他叫<em>林深</em>，19岁，T大计算机系。你认识他很久了——孤儿院的角落，破电脑旁，那个从不说话的孩子。</p>
+    <p>现在他长大了，眼神更冷，计划更深。他在做一件很危险的事，而你隐约知道。</p>
+    <p>计划完成那天，他准备<em>消失</em>。</p>
+    <p>你的任务不是阻止他复仇，而是在他点燃的烈火里，<em>让他想活下去</em>。</p>
+    <p>游戏时间线长达一年。你有<em>24小时</em>现实时间。</p>
+  </div>
+  <div class="cover-name-row">
+    <div class="cover-name-label" id="lbl-name">// 你的名字</div>
+    <input class="cover-name-input" id="player-name-input" placeholder="时鹿（可自定义）" maxlength="8">
+  </div>
+  <div class="cover-api-row">
+    <div class="cover-name-label">// DeepSeek API Key</div>
+    <input class="cover-api-input" id="api-key-input" type="password" placeholder="sk-...">
+  </div>
+  <div class="cover-btns">
+    <button class="cover-btn" id="start-btn" onclick="startNewGame()">开始游戏 · START</button>
+    <button class="cover-btn secondary" id="continue-btn" onclick="continueGame()" style="display:none">继续上次 · CONTINUE</button>
+    <button class="cover-btn secondary" onclick="toggleLang()" style="font-size:10px">中文 / English</button>
+  </div>
+</div>
+
+<!-- ========== 主游戏 ========== -->
+<div id="game-screen" style="display:none;flex-direction:column;height:100dvh;">
+  <div id="top-bar">
+    <div class="top-row1">
+      <div class="game-logo">KARMA</div>
+      <div class="top-phase" id="phase-badge">第一幕·重逢</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:1px;" id="top-date">2016.09.01</div>
+        <div onclick="openSidebar()" style="font-family:'Share Tech Mono',monospace;font-size:18px;color:var(--text3);cursor:pointer;padding:4px;">☰</div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-item"><div class="stat-label"><span>攻略值</span><span id="trust-val">0</span>%</div><div class="stat-bar"><div class="stat-fill" id="trust-bar" style="width:0%"></div></div></div>
+      <div class="stat-item"><div class="stat-label"><span>锚定值</span><span id="anchor-val">0</span>%</div><div class="stat-bar"><div class="stat-fill" id="anchor-bar" style="width:0%;background:var(--accent-warm);"></div></div></div>
+      <div class="stat-item"><div class="stat-label"><span>计划进度</span><span id="plan-val">8</span>%</div><div class="stat-bar"><div class="stat-fill red" id="plan-bar" style="width:8%"></div></div></div>
+    </div>
+  </div>
+  <div id="event-banner"><div class="banner-dot"></div><div class="banner-text" id="banner-text"></div><div class="banner-close" onclick="closeBanner()">✕</div></div>
+  <div id="chat-area"></div>
+  <div id="bottom-area" class="safe-bottom">
+    <div id="info-bar">
+      <div class="info-item"><span class="info-icon">📍</span><span class="info-val" id="info-loc">图书馆三楼</span></div>
+      <div class="info-divider"></div>
+      <div class="info-item"><span class="info-icon" id="weather-icon">☀️</span><span class="info-val" id="info-weather">晴</span></div>
+      <div class="info-divider"></div>
+      <div class="info-item"><span class="info-icon">⏱</span><span class="info-val" id="info-timer">23:58</span></div>
+    </div>
+    <div id="tab-bar">
+      <button class="tab-btn active" id="tab-action" onclick="switchTab('action')">行动</button>
+      <button class="tab-btn" id="tab-dialogue" onclick="switchTab('dialogue')">对话</button>
+    </div>
+    <div id="action-tab" class="active-tab">
+      <!-- T大区 -->
+      <div class="zone-group"><div class="zone-header" onclick="toggleZone(this)"><span class="zone-name">T大区</span><span class="zone-arrow open">▾</span></div>
+      <div class="zone-locs open">
+        <button class="loc-btn active" data-loc="library" onclick="selectLoc(this)"><span class="loc-name">图书馆三楼</span><span class="loc-hint">他常在角落</span><span class="loc-prob" id="prob-library"></span></button>
+        <button class="loc-btn" data-loc="lab" onclick="selectLoc(this)"><span class="loc-name">机房/自习室</span><span class="loc-hint">深夜必有他</span><span class="loc-prob" id="prob-lab"></span></button>
+        <button class="loc-btn" data-loc="cafeteria" onclick="selectLoc(this)"><span class="loc-name">学生食堂</span><span class="loc-hint">吃得很快</span><span class="loc-prob" id="prob-cafeteria"></span></button>
+        <button class="loc-btn" data-loc="path" onclick="selectLoc(this)"><span class="loc-name">校园小径</span><span class="loc-hint">傍晚独行</span><span class="loc-prob" id="prob-path"></span></button>
+        <button class="loc-btn" data-loc="rooftop" onclick="selectLoc(this)"><span class="loc-name">教学楼楼顶</span><span class="loc-hint">深夜独处</span><span class="loc-prob" id="prob-rooftop"></span></button>
+      </div></div>
+      <!-- 校外区 -->
+      <div class="zone-group"><div class="zone-header" onclick="toggleZone(this)"><span class="zone-name">校外区</span><span class="zone-arrow">▾</span></div>
+      <div class="zone-locs">
+        <button class="loc-btn" data-loc="cafe" onclick="selectLoc(this)"><span class="loc-name">校外咖啡馆</span><span class="loc-hint">周末偶见</span><span class="loc-prob" id="prob-cafe"></span></button>
+        <button class="loc-btn" data-loc="orphan" onclick="selectLoc(this)"><span class="loc-name">晨光孤儿院</span><span class="loc-hint">他很少来</span><span class="loc-prob" id="prob-orphan"></span></button>
+        <button class="loc-btn" data-loc="convenience" onclick="selectLoc(this)"><span class="loc-name">便利店/街边</span><span class="loc-hint">仅深夜</span><span class="loc-prob" id="prob-convenience"></span></button>
+        <button class="loc-btn locked" data-loc="hospital" onclick="selectLoc(this)" id="loc-hospital"><span class="loc-name">医院</span><span class="loc-hint">主线解锁</span></button>
+      </div></div>
+      <!-- 私人空间 -->
+      <div class="zone-group"><div class="zone-header" onclick="toggleZone(this)"><span class="zone-name">私人空间</span><span class="zone-arrow">▾</span></div>
+      <div class="zone-locs">
+        <button class="loc-btn locked" data-loc="your-home" onclick="selectLoc(this)" id="loc-yourhome"><span class="loc-name">你的住所</span><span class="loc-hint">45%解锁</span></button>
+        <button class="loc-btn locked" data-loc="linshen-home" onclick="selectLoc(this)" id="loc-lshome"><span class="loc-name">林深的租房</span><span class="loc-hint">55%解锁</span></button>
+      </div></div>
+      <div class="time-row"><button class="time-btn" data-time="清晨" onclick="selectTime(this)">清晨</button><button class="time-btn active" data-time="午后" onclick="selectTime(this)">午后</button><button class="time-btn" data-time="傍晚" onclick="selectTime(this)">傍晚</button><button class="time-btn" data-time="深夜" onclick="selectTime(this)">深夜</button></div>
+      <div class="npc-row"><button class="npc-btn" onclick="contactNPC('陈院长')">联系陈院长</button><button class="npc-btn" onclick="contactNPC('渡鸦')">联系渡鸦</button><button class="npc-btn" onclick="contactNPC('其他人')">其他人</button></div>
+      <button class="go-btn" id="go-btn" onclick="goToScene()">前往 →</button>
+    </div>
+    <div id="dialogue-tab">
+      <div class="input-wrap"><textarea class="dialogue-input" id="dialogue-input" placeholder="说些什么，或者用（）描述动作……" rows="2" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea><button class="send-btn" id="send-btn" onclick="sendMessage()">发送</button></div>
+      <div class="input-hint">用（动作/神态）来描述你的行为 · Enter发送</div>
+    </div>
+  </div>
+</div>
+
+<!-- 侧边栏 -->
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+<div id="sidebar">
+  <div class="sidebar-header"><div class="sidebar-title">档案室</div><div class="sidebar-close" onclick="closeSidebar()">✕</div></div>
+  <div class="sidebar-tabs">
+    <div class="stab active" onclick="switchSTab('intel')">情报</div>
+    <div class="stab" onclick="switchSTab('mainline')">主线</div>
+    <div class="stab" onclick="switchSTab('chars')">人物</div>
+    <div class="stab" onclick="switchSTab('collect')">收藏</div>
+    <div class="stab" onclick="switchSTab('diary')">日记</div>
+    <div class="stab" onclick="switchSTab('npclog')">联系记录</div>
+  </div>
+  <div class="sidebar-content">
+    <!-- 情报页 -->
+    <div class="sidebar-section active" id="section-intel">
+      <div class="intel-group"><div class="intel-group-title">关于 · 林深</div>
+        <div class="intel-item"><div class="intel-key">基础</div><div class="intel-val">19岁，186cm，黑框眼镜（150度）。孤儿院长大，T大计算机系大一。左腕有疤痕，戴黑色护腕。</div></div>
+        <div class="intel-item"><div class="intel-key">创伤</div><div class="intel-val">7岁被周鸿远虐待，母亲为保护他而死。遗言“不要变成他们”。母亲银戒指贴身佩戴。</div></div>
+        <div class="intel-item"><div class="intel-key">心理诊断</div><div class="intel-val">反社会人格倾向（后天主动压制），中度抑郁，慢性失眠，复杂性PTSD（性与暴力创伤）。</div></div>
+        <div class="intel-item"><div class="intel-key">性压抑</div><div class="intel-val">性欲极强但极度厌恶，用健身至力竭或自慰缓解，事后自我厌恶。禁止身体接触（尤其左腕）。</div></div>
+        <div class="intel-item"><div class="intel-key">技术</div><div class="intel-val">顶尖黑客，暗网ID：Karma。师从陈院长和“渡鸦”。</div></div>
+        <div class="intel-item"><div class="intel-key">计划</div><div class="intel-val">“蜂巢游戏”——针对周鸿远的信息战与法律行动。计划完成后打算“消失”。</div></div>
+        <div class="intel-item"><div class="intel-key">生活习惯</div><div class="intel-val">吸烟（万宝路黑冰，不上瘾），每日凌晨健身，睡眠极不规律。</div></div>
+        <div class="intel-item"><div class="intel-key">重要物品</div><div class="intel-val">母亲银戒指（项链），陈院长赠书，渡鸦的U盘，一包很少打开的黑冰。</div></div>
+      </div>
+      <div class="intel-group"><div class="intel-group-title">关于 · 陈院长</div>
+        <div class="intel-item"><div class="intel-key">基本</div><div class="intel-val">你的爷爷。前大学计算机教授，现经营晨光孤儿院。视你和林深如孙辈。</div></div>
+        <div class="intel-item"><div class="intel-key">与林深</div><div class="intel-val">发现了林深的天赋，以无声的方式引导他。给他尊严，不给怜悯。</div></div>
+      </div>
+    </div>
+    <!-- 主线页 -->
+    <div class="sidebar-section" id="section-mainline"><div id="mainline-list"></div></div>
+    <!-- 人物页 -->
+    <div class="sidebar-section" id="section-chars">
+      <div class="char-profile">
+        <div class="char-profile-name">林深</div>
+        <div class="char-profile-sub">// LIN SHEN · KARMA · 19岁</div>
+        <div class="profile-row"><div class="profile-key">眼镜</div><div class="profile-val">黑框，度数不高，有时用手扶</div></div>
+        <div class="profile-row"><div class="profile-key">吸烟</div><div class="profile-val">偶尔，万宝路黑冰，不上瘾</div></div>
+        <div class="profile-row"><div class="profile-key">健身</div><div class="profile-val">每日凌晨，练到力竭，压制性冲动</div></div>
+        <div class="profile-row"><div class="profile-key">母亲遗言</div><div class="profile-val">“不要变成他们”</div></div>
+        <div class="profile-row"><div class="profile-key">重要物品</div><div class="profile-val">母亲银戒指（项链），陈院长赠书，渡鸦U盘</div></div>
+        <div class="linshen-status">
+          <div class="ls-row"><div class="ls-name">戒备</div><div class="ls-track"><div class="ls-dot" id="dot-guard" style="left:85%"></div></div><div class="ls-val" id="val-guard">极高</div></div>
+          <div class="ls-row"><div class="ls-name">开放度</div><div class="ls-track"><div class="ls-dot open" id="dot-open" style="left:5%"></div></div><div class="ls-val" id="val-open">极低</div></div>
+        </div>
+        <div class="mood-badge" id="mood-badge">// 当前：专注·疏离</div>
+      </div>
+      <div class="char-profile">
+        <div class="char-profile-name">心理诊断报告</div>
+        <div class="char-profile-sub">// PSYCHOLOGICAL PROFILE</div>
+        <div class="profile-row"><div class="profile-key">诊断倾向</div><div class="profile-val">反社会人格倾向（后天主动压制共情）</div></div>
+        <div class="profile-row"><div class="profile-key">情感障碍</div><div class="profile-val">中度抑郁，慢性失眠</div></div>
+        <div class="profile-row"><div class="profile-key">创伤后应激</div><div class="profile-val">复杂性PTSD（C-PTSD），与7岁性虐待直接相关</div></div>
+        <div class="profile-row"><div class="profile-key">防御机制</div><div class="profile-val">冷暴力、技术理性、身体极限消耗</div></div>
+      </div>
+      <div class="char-profile">
+        <div class="char-profile-name">生理状态</div>
+        <div class="char-profile-sub">// PHYSIOLOGICAL STATE</div>
+        <div class="profile-row"><div class="profile-key">性欲</div><div class="profile-val">非常强烈（正常睾酮水平），但自我厌恶，视为“肮脏”</div></div>
+        <div class="profile-row"><div class="profile-key">应对方式</div><div class="profile-val">健身至力竭（主要）；自慰（次要，事后强烈自我厌恶）</div></div>
+        <div class="profile-row"><div class="profile-key">禁忌区域</div><div class="profile-val">左腕疤痕处（烟头烫伤），任何触碰都会触发剧烈回避或消失</div></div>
+        <div class="profile-row"><div class="profile-key">睡眠</div><div class="profile-val">极不规律，靠代码或失眠消耗</div></div>
+        <div class="profile-row"><div class="profile-key">成瘾行为</div><div class="profile-val">吸烟（万宝路黑冰），不上瘾；无其他物质依赖</div></div>
+      </div>
+      <div class="char-profile">
+        <div class="char-profile-name" id="player-name-display">时鹿</div>
+        <div class="char-profile-sub">// 24岁 · 进修生</div>
+        <div class="profile-row"><div class="profile-key">身份</div><div class="profile-val">T大进修生，陈院长孙女</div></div>
+        <div class="profile-row"><div class="profile-key">与林深</div><div class="profile-val">孤儿院时期相识，互相记得。他主动保持距离。</div></div>
+      </div>
+    </div>
+    <!-- 收藏页 -->
+    <div class="sidebar-section" id="section-collect"><div id="collect-list"><div class="empty-tip">还没有收藏的句子。<br>长按林深的对话可以收藏。</div></div></div>
+    <!-- 日记页 -->
+    <div class="sidebar-section" id="section-diary"><div class="diary-input-area"><textarea class="diary-textarea" id="diary-input" placeholder="记下你的观察和判断……"></textarea><button class="diary-save-btn" onclick="saveDiary()">保存</button></div><div id="diary-list"></div></div>
+    <!-- 联系记录页 -->
+    <div class="sidebar-section" id="section-npclog"><div id="npc-log-list"><div class="empty-tip">还没有联系记录。</div></div></div>
+  </div>
+</div>
+<div id="error-toast"></div>
+<div id="timer-warning"><div class="tw-title">⚠ 时间不多了</div><div class="tw-text" id="tw-text">你只剩下5小时。<br>林深的计划还在推进。<br>你还有机会。</div><button class="tw-btn" onclick="document.getElementById('timer-warning').style.display='none'">继续</button></div>
+<div id="ending-screen"><div class="ending-tag" id="ending-tag">// ENDING</div><div class="ending-title" id="ending-title"></div><div class="ending-body" id="ending-body"></div><div class="ending-score" id="ending-score"></div><div class="ending-btns"><button class="ending-btn" onclick="showReview()">回顾对话</button><button class="ending-btn" onclick="restartGame()">重新开始</button></div></div>
+<div id="review-modal" style="display:none;flex-direction:column;"><div class="review-header"><div class="review-title">对话回顾</div><div class="review-close" onclick="document.getElementById('review-modal').style.display='none'">✕</div></div><div id="review-content"></div></div>
+
+<script>
+// ============================================================
+// 全局状态
+// ============================================================
+let API_KEY = '';
+let PLAYER_NAME = '时鹿';
+let lang = 'zh';
+let isLoading = false;
+let scrollLocked = false;
+
+const G = {
+  trust: 0, anchor: 0, plan: 8, phase: 1, week: 1,
+  gameDate: new Date('2016-09-01'), onlineSeconds: 0, lastTick: null,
+  currentLoc: 'library', currentTime: '午后',
+  triggeredEvents: [], metThisScene: false,
+  linshenMood: '专注·疏离', linshenGuard: 90, linshenOpen: 5,
+  collected: [], diary: [], npcLogs: [],
+  chatHistory: [], memorySummaries: [], coreMemories: [],
+  allMessages: [],
+  unlockedLocs: new Set(['library','lab','cafeteria','path','rooftop','cafe','orphan','convenience']),
+  hospitalUnlocked: false, endingTriggered: false, passersby: [],
+};
+
+// 主线8个事件
+const MAINLINE_EVENTS = [
+  { id:'e1', progress:20, phase:2, title:'外环启动', desc:'林深开始频繁深夜出入机房，行踪异常。', banner:'// KARMA 开始行动 · 计划进入外环准备阶段' },
+  { id:'e2', progress:35, phase:2, title:'信息流出', desc:'匿名数据包开始在各大论坛流传，来源无法溯源。', banner:'// 外环启动 · 匿名信息开始扩散' },
+  { id:'e3', progress:50, phase:3, title:'入侵事件', desc:'某上市公司子公司内网遭入侵，相关数据泄露。', banner:'// 蜂巢计划深入 · 目标公司开始动荡' },
+  { id:'e4', progress:62, phase:3, title:'陈院长病倒', desc:'爷爷突发轻度脑梗，住院治疗。医院场所已解锁。', banner:'// 陈院长住院 · 关键节点触发', unlock:'hospital' },
+  { id:'e5', progress:72, phase:4, title:'舆论风暴', desc:'多家媒体开始追踪报道，周鸿远旗下公司股价波动。', banner:'// 舆论风暴形成 · 中环启动' },
+  { id:'e6', progress:82, phase:4, title:'不可逆', desc:'核心证据已递交检察机关。林深的行动进入不可逆阶段。', banner:'// 中环完成 · 无法回头了' },
+  { id:'e7', progress:90, phase:5, title:'林深消失', desc:'林深深夜未出现在任何常规地点。', banner:'// 内环启动 · 最终阶段' },
+  { id:'e8', progress:98, phase:5, title:'倒计时', desc:'Karma的公开信已准备就绪，设有定时发送。', banner:'// 时间耗尽 · 最后的机会' },
+];
+
+const LOC_PROB = {
+  library: { 清晨:0.25, 午后:0.75, 傍晚:0.45, 深夜:0.15 },
+  lab: { 清晨:0.10, 午后:0.40, 傍晚:0.60, 深夜:0.88 },
+  cafeteria: { 清晨:0.65, 午后:0.60, 傍晚:0.50, 深夜:0.05 },
+  path: { 清晨:0.20, 午后:0.25, 傍晚:0.65, 深夜:0.10 },
+  rooftop: { 清晨:0.05, 午后:0.08, 傍晚:0.20, 深夜:0.65 },
+  cafe: { 清晨:0.05, 午后:0.38, 傍晚:0.22, 深夜:0.08 },
+  orphan: { 清晨:0.05, 午后:0.08, 傍晚:0.05, 深夜:0.02 },
+  convenience: { 清晨:0.15, 午后:0.05, 傍晚:0.10, 深夜:0.50 },
+  hospital: { 清晨:0.20, 午后:0.40, 傍晚:0.35, 深夜:0.10 },
+  'your-home': { 清晨:0.10, 午后:0.30, 傍晚:0.40, 深夜:0.20 },
+  'linshen-home': { 清晨:0.05, 午后:0.15, 傍晚:0.20, 深夜:0.45 },
+};
+
+const PASSERBY_TYPES = [
+  { type:'stranger_close', scenes:['library','cafeteria'], effect:-5, desc:'一个陌生同学突然坐到林深附近，他明显绷紧了。' },
+  { type:'acquaintance', scenes:['cafeteria','path','cafe'], effect:-3, desc:'有人认出林深打了个招呼，他只点了下头，眼神已经在找出口。' },
+  { type:'neutral', scenes:['all'], effect:0, desc:'人来人往，没有人特别注意到你们。' },
+  { type:'night_soul', scenes:['rooftop','convenience','lab'], effect:3, desc:'同样深夜还在的人，似乎都有各自沉默的理由。林深稍微放松了一点。' },
+  { type:'rain_shelter', scenes:['cafe','library'], effect:2, desc:'外面在下雨，躲进来的人让空间多了一点温度。' },
+];
+
+// 环境描写库
+const ENV_DESCRIPTIONS = {
+  library: { 清晨: ['清晨的图书馆，光线还很暗，只有几缕晨光透过窗格，空气中带着一夜沉积的凉意。'], 午后: ['午后的图书馆，阳光斜照进来，尘埃在光柱中缓慢浮动，书页和木桌的气息混合在一起。', '午后的阅览室很安静，只有翻书声和远处偶尔的脚步声。'], 傍晚: ['傍晚的图书馆，暮色从窗外渗入，影子被拉得很长，安静得能听到自己的呼吸。'], 深夜: ['深夜的图书馆，只有应急灯亮着，寂静压得很低，时间仿佛变慢了。'] },
+  lab: { 清晨: ['清晨的机房，键盘声稀疏，空气中弥漫着电子设备的微热。'], 午后: ['午后的机房，风扇声嗡嗡作响，有人在角落里调试代码。'], 傍晚: ['傍晚的机房，光线变暗，屏幕的光映在脸上。'], 深夜: ['深夜的机房，只有路灯和键盘的微光，他是这里唯一的人。'] },
+  cafeteria: { 清晨: ['清晨的食堂，早餐的热气蒸腾，人还不多。'], 午后: ['午后的食堂，大部分学生已经离开，只剩下零星的餐具碰撞声。'], 傍晚: ['傍晚的食堂，人来人往，但林深独自坐在角落。'], 深夜: ['深夜的食堂已关闭，只有门口的灯光还亮着。'] },
+  rooftop: { 清晨: ['清晨的天台，风很大，能看见远处城市的轮廓。'], 午后: ['午后的天台，阳光刺眼，地上有拉长的影子。'], 傍晚: ['傍晚的天台，夕阳把一切都染成橙色，他靠在栏杆上。'], 深夜: ['深夜的天台，只有星星和远处零星的灯光，风很冷。'] },
+  orphan: { 清晨: ['晨光孤儿院，早晨的阳光照在褪色的滑梯上，很安静。'], 午后: ['午后的孤儿院，孩子们在午睡，院子里只有风吹树叶的声音。'], 傍晚: ['傍晚的孤儿院，橘色的光洒在墙上，像很多年前一样。'], 深夜: ['深夜的孤儿院，只有门卫室的灯亮着，周围一片漆黑。'] },
+  cafe: { 清晨: ['清晨的咖啡馆还没开门，只有路边几只猫。'], 午后: ['午后的咖啡馆，飘着咖啡香，他有时会在这里敲键盘。'], 傍晚: ['傍晚的咖啡馆，暖色的灯光亮起，玻璃窗上有雾气。'], 深夜: ['深夜的咖啡馆，即将打烊，只剩一两个常客。'] },
+  convenience: { 清晨: ['清晨的便利店，货架刚补满，店员打着哈欠。'], 午后: ['午后的便利店，没什么人，只有收银台的滴滴声。'], 傍晚: ['傍晚的便利店，学生放学后买零食，有些吵闹。'], 深夜: ['深夜的便利店，他是唯一站在关东煮前的顾客。'] },
+  hospital: { 清晨: ['清晨的医院，走廊里有消毒水的味道，护士推着推车经过。'], 午后: ['午后的医院，阳光透过窗户照在病床上，很安静。'], 傍晚: ['傍晚的医院，访客陆续离开，走廊变得空旷。'], 深夜: ['深夜的医院，只有值班室的灯还亮着。'] },
+  'your-home': { 清晨: ['你的住所，清晨的阳光透过窗帘缝隙照进来，很安静。'], 午后: ['你的住所，午后的光线正好，适合发呆。'], 傍晚: ['你的住所，暮色渐浓，你站在窗前。'], 深夜: ['你的住所，深夜，只有台灯亮着。'] },
+  'linshen-home': { 清晨: ['林深的租房，窗帘紧闭，只有电脑屏幕的微光。'], 午后: ['林深的租房，光线昏暗，桌上散落着烟盒和U盘。'], 傍晚: ['林深的租房，夕阳从缝隙挤进来，照在键盘上。'], 深夜: ['林深的租房，只有敲击键盘的声音和一根将熄的烟。'] }
+};
+function getRandomEnvDesc(loc, time) {
+  const arr = ENV_DESCRIPTIONS[loc]?.[time];
+  if (arr && arr.length) return arr[Math.floor(Math.random() * arr.length)];
+  return `${time}的${loc}。`;
+}
+
+function getWeather(date) {
+  const m = date.getMonth() + 1;
+  const rand = Math.random();
+  if (m >= 6 && m <= 8) {
+    if (rand < 0.4) return { icon:'⛈', text:'雷阵雨', mood:'闷热', effect:0.8 };
+    if (rand < 0.7) return { icon:'☁️', text:'多云', mood:'潮湿', effect:0.9 };
+    return { icon:'☀️', text:'晴热', mood:'闷热', effect:1.0 };
+  }
+  if (m >= 12 || m <= 2) {
+    if (rand < 0.2) return { icon:'❄️', text:'小雪', mood:'寒冷', effect:0.85 };
+    if (rand < 0.5) return { icon:'🌫', text:'阴冷', mood:'阴冷', effect:0.9 };
+    return { icon:'🌤', text:'晴冷', mood:'寒冷', effect:1.0 };
+  }
+  if (m >= 3 && m <= 5) {
+    if (rand < 0.35) return { icon:'🌧', text:'小雨', mood:'潮湿', effect:0.85 };
+    if (rand < 0.55) return { icon:'☁️', text:'阴天', mood:'阴郁', effect:0.9 };
+    return { icon:'🌸', text:'晴朗', mood:'清爽', effect:1.0 };
+  }
+  if (rand < 0.25) return { icon:'🌧', text:'小雨', mood:'凉意', effect:0.85 };
+  if (rand < 0.45) return { icon:'☁️', text:'多云', mood:'秋意', effect:0.9 };
+  return { icon:'🍂', text:'秋晴', mood:'清爽', effect:1.0 };
+}
+let currentWeather = getWeather(G.gameDate);
+
+// ==================== 辅助函数 ====================
+function escHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m] || m)).replace(/\n/g,'<br>'); }
+function showError(msg) { const t=document.getElementById('error-toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+function updateUI() {
+  document.getElementById('trust-bar').style.width = G.trust+'%'; document.getElementById('trust-val').innerText = Math.round(G.trust);
+  document.getElementById('anchor-bar').style.width = G.anchor+'%'; document.getElementById('anchor-val').innerText = Math.round(G.anchor);
+  document.getElementById('plan-bar').style.width = G.plan+'%'; document.getElementById('plan-val').innerText = Math.round(G.plan);
+  const guardDot=document.getElementById('dot-guard'), openDot=document.getElementById('dot-open');
+  if(guardDot) guardDot.style.left = G.linshenGuard+'%';
+  if(openDot) openDot.style.left = G.linshenOpen+'%';
+  document.body.className = '';
+  if (G.trust<30) document.body.classList.add('theme-0');
+  else if (G.trust<55) document.body.classList.add('theme-1');
+  else if (G.trust<75) document.body.classList.add('theme-2');
+  else document.body.classList.add('theme-3');
+  updateProbDisplay();
+}
+function updateProbDisplay() {
+  const locs = ['library','lab','cafeteria','path','rooftop','cafe','orphan','convenience'];
+  locs.forEach(loc => {
+    const el = document.getElementById('prob-'+loc);
+    if (el) {
+      let p = (LOC_PROB[loc]?.[G.currentTime]||0.15) + G.trust*0.0018;
+      p = Math.min(0.95, Math.max(0.02, p));
+      el.textContent = Math.round(p*100)+'%';
+    }
+  });
+}
+function addEnvMsg(text) { const d=document.createElement('div'); d.className='env-block'; d.innerHTML=`<div class="env-text">${escHtml(text)}</div>`; document.getElementById('chat-area').appendChild(d); if(!scrollLocked) d.scrollIntoView({behavior:'smooth'}); G.allMessages.push({type:'env',text}); }
+function addNarratorMsg(text) { const d=document.createElement('div'); d.className='narrator-block'; d.innerHTML=`<div class="narrator-text">${escHtml(text)}</div>`; document.getElementById('chat-area').appendChild(d); if(!scrollLocked) d.scrollIntoView({behavior:'smooth'}); G.allMessages.push({type:'narrator',text}); }
+function addSystemMsg(text) { const d=document.createElement('div'); d.className='system-block'; d.innerHTML=`<div class="system-text">${escHtml(text)}</div>`; document.getElementById('chat-area').appendChild(d); if(!scrollLocked) d.scrollIntoView({behavior:'smooth'}); }
+function addLinShenMsg(dialogue, action) {
+  const msgId = 'msg-' + Date.now();
+  const row = document.createElement('div');
+  row.className = 'msg-row linshen';
+  // 气泡只放对话文字，动作描写在气泡外面
+  row.innerHTML = `
+    <div class="msg-name linshen">林深</div>
+    <div class="bubble-wrap" id="${msgId}">
+      <div class="bubble linshen" onclick="toggleAction('${msgId}')">
+        <div class="bubble-text">${escHtml(dialogue)}</div>
+
+      </div>
+      ${action ? `<div class="action-desc" id="action-${msgId}"><div class="action-text">${escHtml(action)}</div></div>` : ''}
+    </div>`;
+  // 长按收藏
+  const bub = row.querySelector('.bubble.linshen');
+  let lt;
+  bub.addEventListener('touchstart', () => { ctxTarget = {quote: dialogue}; lt = setTimeout(() => showCtxMenu(bub), 600); }, {passive:true});
+  bub.addEventListener('touchend', () => clearTimeout(lt));
+  bub.addEventListener('touchmove', () => clearTimeout(lt));
+  bub.addEventListener('contextmenu', (e) => { e.preventDefault(); ctxTarget = {quote: dialogue}; showCtxMenu2(e.clientX, e.clientY); });
+  document.getElementById('chat-area').appendChild(row);
+  if(!scrollLocked) row.scrollIntoView({behavior:'smooth'});
+  G.allMessages.push({type:'linshen', dialogue, action});
+}
+
+function showCtxMenu(el) {
+  const rect = el.getBoundingClientRect();
+  showCtxMenu2(rect.left + 20, rect.bottom - 10);
+}
+function showCtxMenu2(x, y) {
+  const m = document.getElementById('context-menu');
+  if (!m) return;
+  m.classList.remove('hidden');
+  m.style.left = Math.min(x, window.innerWidth - 140) + 'px';
+  m.style.top = Math.min(y, window.innerHeight - 90) + 'px';
+}
+function addActionOnlyMsg(action) { const block=document.createElement('div'); block.className='env-block'; block.innerHTML=`<div class="env-text">[ ${escHtml(action)} ]</div>`; document.getElementById('chat-area').appendChild(block); if(!scrollLocked) block.scrollIntoView({behavior:'smooth'}); G.allMessages.push({type:'action',action}); }
+function addPlayerMsg(dialogue, action) {
+  const row = document.createElement('div');
+  row.className = 'msg-row player';
+  const pid = 'pl-' + Date.now();
+  // 气泡只放对话，动作在气泡下方，点击切换显示
+  let html = `<div class="msg-name player">${PLAYER_NAME}</div><div class="bubble-wrap">`;
+  if (dialogue) {
+    html += `<div class="bubble player" onclick="togglePlayerAct('${pid}')">
+      <div class="bubble-text">${escHtml(dialogue)}</div>
+
+    </div>`;
+  }
+  if (action) {
+    html += `<div class="action-desc" id="pact-${pid}"><div class="action-text">（${escHtml(action)}）</div></div>`;
+  }
+  html += '</div>';
+  row.innerHTML = html;
+  document.getElementById('chat-area').appendChild(row);
+  if(!scrollLocked) row.scrollIntoView({behavior:'smooth'});
+  G.allMessages.push({type:'player', dialogue, action});
+}
+
+function togglePlayerAct(pid) {
+  const a = document.getElementById('pact-'+pid);
+  const h = document.getElementById('phint-'+pid);
+  if (!a) return;
+  const open = a.classList.toggle('open');
+
+}
+function togglePlayerAction(bubble) {
+  const row = bubble.closest('.msg-row');
+  const actionDiv = row.querySelector('.player-action');
+  if (actionDiv) actionDiv.classList.toggle('hidden');
+}
+function addTypingIndicator() { const id='typing-'+Date.now(); const row=document.createElement('div'); row.className='msg-row linshen'; row.id=id; row.innerHTML=`<div class="msg-name linshen">林深</div><div class="typing-indicator"><span></span><span></span><span></span></div>`; document.getElementById('chat-area').appendChild(row); if(!scrollLocked) row.scrollIntoView({behavior:'smooth'}); return id; }
+function removeTypingIndicator(id) { const el=document.getElementById(id); if(el) el.remove(); }
+function toggleAction(msgId) {
+  const a = document.getElementById('action-'+msgId);
+  const h = document.getElementById('hint-'+msgId);
+  if (!a) return;
+  const open = a.classList.toggle('open');
+  if (h) h.textContent = open ? '↑ 点击隐藏神态' : '↓ 点击查看神态';
+}
+function saveDiary() { const txt=document.getElementById('diary-input')?.value.trim(); if(txt) G.diary.push({text:txt,date:G.gameDate.toLocaleDateString('zh-CN')}); document.getElementById('diary-input').value=''; renderDiary(); saveGame(); }
+function renderDiary() { const list=document.getElementById('diary-list'); if(!list) return; list.innerHTML=G.diary.slice().reverse().map(d=>`<div class="diary-entry"><div class="diary-date">${d.date}</div><div class="diary-text">${escHtml(d.text)}</div></div>`).join(''); }
+function renderNPCLogs() { const list=document.getElementById('npc-log-list'); if(G.npcLogs.length===0) { list.innerHTML='<div class="empty-tip">还没有联系记录。</div>'; return; } list.innerHTML=G.npcLogs.slice().reverse().map(l=>`<div class="npc-record"><div class="npc-record-header"><div class="npc-record-name">${escHtml(l.npc)}</div><div class="npc-record-date">${l.date}</div></div><div class="npc-record-text">${escHtml(l.text)}</div></div>`).join(''); }
+function switchTab(tab) { document.getElementById('action-tab').style.display=tab==='action'?'block':'none'; document.getElementById('dialogue-tab').style.display=tab==='dialogue'?'block':'none'; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); event.target.classList.add('active'); }
+function toggleZone(header) { const locs=header.nextElementSibling; const arrow=header.querySelector('.zone-arrow'); locs.classList.toggle('open'); arrow.innerText=locs.classList.contains('open')?'▾':'▸'; }
+function selectLoc(btn) { if(btn.classList.contains('locked')){ showError('未解锁'); return; } document.querySelectorAll('.loc-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); G.currentLoc=btn.dataset.loc; updateProbDisplay(); }
+function selectTime(btn) { document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); G.currentTime=btn.dataset.time; updateProbDisplay(); }
+function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').classList.add('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
+function switchSTab(section) { document.querySelectorAll('.stab').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.sidebar-section').forEach(s=>s.classList.remove('active')); document.getElementById('section-'+section).classList.add('active'); event.target.classList.add('active'); }
+function setInputDisabled(disabled) { const s=document.getElementById('send-btn'); if(s) s.disabled=disabled; const g=document.getElementById('go-btn'); if(g) g.disabled=disabled; }
+function showBanner(text) { const bn=document.getElementById('event-banner'); document.getElementById('banner-text').textContent=text; bn.classList.add('show'); setTimeout(()=>bn.classList.remove('show'),6000); }
+function closeBanner() { document.getElementById('event-banner').classList.remove('show'); }
+// ==================== System Prompt ====================
+function buildSystemPrompt() {
+  const phaseDesc = {
+    1:'第一幕·疏离：林深刚入大学，对你有模糊记忆但主动保持距离。戒备极高。',
+    2:'第二幕·试探：林深开始注意到你的存在，偶尔发出奇怪的消息。',
+    3:'第三幕·裂缝：陈院长病倒，林深第一次在你面前流露真实情感。',
+    4:'第四幕·烈火：蜂巢计划深入，林深承受极大压力，开始考验你的立场。',
+    5:'第五幕·终局：计划接近完成，林深开始"收尾"。',
+  };
+  const passerbyNote = G.passersby.length > 0 ? `当前场景有路人：${G.passersby.map(p=>p.desc).join('；')}` : '当前场景安静，没有干扰。';
+  const summaries = G.memorySummaries.slice(-2).join('\n');
+  const coreMem = G.coreMemories.slice(-2).join('\n');
+  
+  return `你在扮演《蜂巢游戏》中的【林深】。
+
+【角色】林深，19岁，T大计算机系大一。黑框眼镜（度数不高），偶尔吸烟不上瘾，健身减压。暗网ID：Karma。反社会人格倾向（后天形成），中度抑郁，失眠。7岁丧母，母亲临终说："不要变成他们。"由陈院长发掘天赋，由渡鸦系统培训。正在推进"蜂巢游戏"——针对儿童伤害案主犯的信息战与法律行动。最终计划：完成后公开自己全部行为然后消失（隐秘预设，不主动说出）。
+
+【与${PLAYER_NAME}的关系】陈院长孙女，24岁进修生。孤儿院时期相识，13岁时无意撞见他在库房哭泣，她没追问只帮他修了电脑——他记得，这是好感根源。他入学前知道她在T大，主动保持距离。
+
+【当前状态】攻略值${G.trust}%  锚定值${G.anchor}%  计划${G.plan}%  场所${G.currentLoc}  时间${G.currentTime}  天气${currentWeather.text}  状态${G.linshenMood||'专注疏离'}
+${coreMemStr ? '【核心记忆】' + coreMemStr : ''}
+${summaryStr ? '【历史摘要】' + summaryStr : ''}
+
+【行为准则】0-30%：1-4字，沉默为主；30-55%：5-10字，偶尔问奇怪问题；55-75%：10-20字，有依赖但不承认；75%+：可透露计划内容。踩雷（追问太多/像监视他）：小错冷淡，大错消失。风格：简短克制偶尔锐利。禁止美化自我伤害。
+
+【输出格式（严格遵守）用|||分隔两部分：
+第一部分三个区块：
+[ENV]场景氛围叙事（20字内，第二人称"你"，禁用"她"）
+[ACTION]林深动作神态（30字内，第三人称"他"，禁用"我""她"）
+[DIALOGUE]林深说的话（纯对话，不含动作括号）
+沉默时写：[DIALOGUE]（沉默）
+
+第二部分JSON：{"trust_delta":数字,"anchor_delta":数字,"mood":"状态10字内","core_memory":"重要节点否则留空"}
+trust_delta:-8到+8，anchor_delta:-3到+5】`;
+}
+
+// ==================== API调用与解析 ====================
+async function callAPI(userPrompt, callback) {
+  if (!API_KEY) { showError('未设置API Key'); return; }
+  isLoading = true; setInputDisabled(true);
+  const loadingId = addTypingIndicator();
+  const messages = [...G.chatHistory.slice(-18), { role:'user', content: userPrompt }];
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+  try {
+    const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${API_KEY}`},
+      body:JSON.stringify({ model:'deepseek-chat', max_tokens:500, temperature:0.88, system:buildSystemPrompt(), messages }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!resp.ok) {
+      const e = await resp.json().catch(()=>({}));
+      throw new Error((e.error?.message)||'HTTP '+resp.status);
+    }
+    const data = await resp.json();
+    const raw = data.choices[0].message.content;
+    G.chatHistory.push({ role:'user', content: userPrompt }, { role:'assistant', content: raw });
+    removeTypingIndicator(loadingId);
+    parseAndRender(raw);
+    if (callback) callback();
+    if (G.chatHistory.length % 20 === 0) generateSummary();
+  } catch(err) {
+    clearTimeout(timeout);
+    removeTypingIndicator(loadingId);
+    if (err.name === 'AbortError') showError('响应超时，请重试');
+    else showError('错误：'+(err.message||'网络失败'));
+  }
+  isLoading = false; setInputDisabled(false);
+}
+
+// 解析并渲染AI回复
+function parseAndRender(raw) {
+  const parts = raw.split('|||');
+  const narr = parts[0]?.trim() || '';
+  const jsonStr = parts[1]?.trim() || '';
+
+  // 解析三个区块
+  const envM = narr.match(/\[ENV\]([\s\S]*?)(?=\[ACTION\]|\[DIALOGUE\]|$)/);
+  const actM = narr.match(/\[ACTION\]([\s\S]*?)(?=\[DIALOGUE\]|$)/);
+  const dlgM = narr.match(/\[DIALOGUE\]([\s\S]*?)$/);
+
+  const env = envM?.[1]?.trim() || '';
+  const act = actM?.[1]?.trim() || '';
+  const dlg = dlgM?.[1]?.trim() || '';
+
+  // 渲染：场景描写居中
+  if (env) addEnvMsg(env);
+  // 渲染：对话气泡（只含对话），气泡外跟动作描写
+  if (dlg && dlg !== '（沉默）') {
+    addLinShenMsg(dlg, act);
+  } else if (act) {
+    addEnvMsg('['+act+']');
+  }
+
+  // 解析JSON状态
+  if (jsonStr) {
+    try {
+      const s = JSON.parse(jsonStr.replace(/```json|```/g,'').trim());
+      if (s.trust_delta) G.trust = Math.max(0, Math.min(100, G.trust + s.trust_delta));
+      if (s.anchor_delta) G.anchor = Math.max(0, Math.min(100, G.anchor + s.anchor_delta));
+      if (s.mood) { G.linshenMood = s.mood; const m=document.getElementById('mood-badge'); if(m) m.textContent='// 状态：'+s.mood; }
+      if (s.core_memory) { G.coreMemories = G.coreMemories || []; G.coreMemories.push(s.core_memory); }
+    } catch(e) { console.warn('JSON解析失败', e); }
+  } else {
+    // 无JSON时小幅随机变化
+    const d = dlg && dlg.length > 3 ? 1.2 : (dlg ? 0.5 : -0.3);
+    G.trust = Math.min(100, Math.max(0, G.trust + d * (G.trust < 30 ? 0.6 : 1)));
+    G.anchor = Math.min(100, Math.max(0, G.anchor + (Math.random()-0.3)*0.8));
+  }
+  updateUI(); checkPhaseAndEvents(); checkEnding(); saveGame();
+}
+
+// cleanDialogue和getDefaultReply已废弃，由parseAndRender替代
+
+
+async function generateSummary() {
+  if (!API_KEY || G.chatHistory.length<10) return;
+  const recent = G.chatHistory.slice(-15).map(m=>`${m.role}: ${m.content}`).join('\n');
+  try {
+    const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${API_KEY}`},
+      body:JSON.stringify({ model:'deepseek-chat', max_tokens:300, temperature:0.3,
+        system:'压缩以下对话为150字以内摘要，保留关键情感。只输出摘要。',
+        messages:[{ role:'user', content: recent }] })
+    });
+    if (resp.ok) { const data=await resp.json(); const sum=data.choices[0].message.content.trim(); G.memorySummaries.push(`[摘要] ${sum}`); if(G.memorySummaries.length>5) G.memorySummaries.shift(); }
+  } catch(e) {}
+}
+
+// ==================== 游戏核心逻辑（保持不变，只调整 goToScene 和 sendMessage 的 prompt） ====================
+function advanceGameTime(planDelta) { const days=Math.round(planDelta*365/98); G.gameDate=new Date(G.gameDate.getTime()+days*86400000); currentWeather=getWeather(G.gameDate); updateInfoBar(); }
+function updateInfoBar() { const d=G.gameDate; document.getElementById('top-date').innerText=`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`; const locNames={library:'图书馆三楼',lab:'机房/自习室',cafeteria:'学生食堂',path:'校园小径',rooftop:'教学楼楼顶',cafe:'校外咖啡馆',orphan:'晨光孤儿院',convenience:'便利店',hospital:'医院','your-home':'你的住所','linshen-home':'林深的租房'}; document.getElementById('info-loc').innerText=locNames[G.currentLoc]||G.currentLoc; document.getElementById('weather-icon').innerText=currentWeather.icon; document.getElementById('info-weather').innerText=currentWeather.text; }
+function generatePassersby() { G.passersby=[]; const count=Math.floor(Math.random()*2); for(let i=0;i<count;i++){ const candidates=PASSERBY_TYPES.filter(p=>p.scenes.includes('all')||p.scenes.includes(G.currentLoc)); if(candidates.length){ const chosen=candidates[Math.floor(Math.random()*candidates.length)]; G.passersby.push(chosen); } } }
+async function goToScene() {
+  if(isLoading) return;
+  if(G.currentLoc==='convenience' && G.currentTime!=='深夜'){ addSystemMsg('便利店仅在深夜可用'); return; }
+  generatePassersby();
+  const planDelta=2+Math.random()*2; G.plan=Math.min(98,G.plan+planDelta); advanceGameTime(planDelta); checkPhaseAndEvents();
+  // 环境描写
+  const envDesc = getRandomEnvDesc(G.currentLoc, G.currentTime);
+  addEnvMsg(envDesc);
+  if(G.passersby.length) addEnvMsg(G.passersby.filter(p=>p.type!=='neutral').map(p=>p.desc).join(' '));
+  const prob = (LOC_PROB[G.currentLoc]?.[G.currentTime]||0.2) + G.trust/500;
+  const met = Math.random()<prob;
+  const locName = document.getElementById('info-loc').innerText;
+  addNarratorMsg(`${G.currentTime}，你来到了${locName}。`);
+  if(!met){ addNarratorMsg('他不在这里。'); addSystemMsg('[未遇到林深]'); G.plan=Math.min(98,G.plan+0.5); updateUI(); saveGame(); return; }
+  switchTab('dialogue');
+  const pbEffect = G.passersby.filter(p=>p.effect<0).reduce((s,p)=>s+p.effect,0);
+  const prompt = `${PLAYER_NAME}在${G.currentTime}来到${locName}，遇到了林深。${pbEffect<0?`路人干扰，戒备更高。`:''}请用一句话回应，字数不超过10个字，保持冷淡。`;
+  await callAPI(prompt);
+}
+async function sendMessage() {
+  const input=document.getElementById('dialogue-input'); const raw=input.value.trim(); if(!raw||isLoading) return;
+  input.value='';
+  // 改进括号匹配：支持中英文括号，全局替换
+  let dialogueText = raw;
+  let playerAction = '';
+  const actionMatch = raw.match(/[（(]([\s\S]*?)[）)]/);
+  if (actionMatch) {
+    playerAction = actionMatch[1].trim();
+    dialogueText = raw.replace(/[（(][\s\S]*?[）)]/g, '').trim();
+  }
+  if (dialogueText === '') dialogueText = '……';
+  addPlayerMsg(dialogueText, playerAction);
+  G.plan=Math.min(98,G.plan+0.8); checkPhaseAndEvents();
+  const prompt = `你${playerAction?'做了：'+playerAction+'，然后':''}说：${dialogueText}`;
+  await callAPI(prompt);
+}
+async function contactNPC(name) {
+  if(isLoading) return;
+  addNarratorMsg(`你联系了${name}。`);
+  const prompt = `请扮演${name}（陈院长：温和智慧；渡鸦：冷漠寡言），简短回应你，不超过10个字。`;
+  await callAPI(prompt, () => { G.npcLogs.push({npc:name,text:'联系结束',date:G.gameDate.toLocaleDateString('zh-CN')}); renderNPCLogs(); saveGame(); });
+}
+function checkPhaseAndEvents() {
+  for(let ev of MAINLINE_EVENTS){
+    if(!G.triggeredEvents.includes(ev.id) && G.plan>=ev.progress){
+      G.triggeredEvents.push(ev.id); G.phase=ev.phase;
+      showBanner(ev.banner); addSystemMsg(`[ 主线 · ${ev.title} ] ${ev.desc}`);
+      if(ev.unlock==='hospital'){ G.hospitalUnlocked=true; G.unlockedLocs.add('hospital'); document.getElementById('loc-hospital')?.classList.remove('locked'); }
+      const list=document.getElementById('mainline-list'); if(list){ const item=document.createElement('div'); item.className='mainline-item'; item.innerHTML=`<div class="mainline-dot done"></div><div class="mainline-info"><div class="mainline-title">${escHtml(ev.title)}</div><div class="mainline-desc">${escHtml(ev.desc)}</div></div>`; list.appendChild(item); }
+    }
+  }
+  if(G.trust>=45 && !G.unlockedLocs.has('your-home')){ G.unlockedLocs.add('your-home'); document.getElementById('loc-yourhome')?.classList.remove('locked'); addSystemMsg('[ 你的住所已解锁 ]'); }
+  if(G.trust>=55 && !G.unlockedLocs.has('linshen-home')){ G.unlockedLocs.add('linshen-home'); document.getElementById('loc-lshome')?.classList.remove('locked'); addSystemMsg('[ 林深租房已解锁 ]'); }
+  updateUI(); renderRemainingMainline();
+}
+function renderRemainingMainline() { const list=document.getElementById('mainline-list'); if(!list) return; list.querySelectorAll('.mainline-item.upcoming').forEach(el=>el.remove()); MAINLINE_EVENTS.filter(e=>!G.triggeredEvents.includes(e.id)).slice(0,3).forEach(ev=>{ const item=document.createElement('div'); item.className='mainline-item upcoming'; item.innerHTML=`<div class="mainline-dot"></div><div class="mainline-info"><div class="mainline-title" style="color:var(--text3)">${escHtml(ev.title)}</div><div class="mainline-desc">计划进度 ${ev.progress}% 触发</div></div>`; list.appendChild(item); }); }
+function checkEnding() { if(G.plan>=98 && !G.endingTriggered){ G.endingTriggered=true; clearInterval(timerInterval); setTimeout(triggerEnding,1500); } }
+function triggerEnding() {
+  const {trust,anchor}=G; let title,body;
+  if(trust>=75 && anchor>=60){ title='向死而生'; body='他发出了公开信，删除了定时遗言。某个早晨，键盘声轻而稳，你在旁边翻书。他没有消失。'; }
+  else if(trust>=50 && anchor>=35){ title='灰烬之后'; body='他完成了计划，没有消失，但也没有回来。你收到一封匿名邮件，只有一行字。他还活着。'; }
+  else { title='代码终止'; body='蜂巢游戏落幕，他消失了。你在孤儿院门口坐了一下午，什么都没等到。'; }
+  document.getElementById('ending-title').innerText=title; document.getElementById('ending-body').innerText=body; document.getElementById('ending-score').innerText=`攻略值 ${trust}% · 锚定值 ${anchor}%`; document.getElementById('ending-screen').style.display='flex';
+}
+function showReview() { const modal=document.getElementById('review-modal'); const content=document.getElementById('review-content'); modal.style.display='flex'; content.innerHTML=G.allMessages.map(m=>{ if(m.type==='env'||m.type==='narrator') return `<div class="env-block"><div class="env-text">${escHtml(m.text)}</div></div>`; if(m.type==='linshen') return `<div class="msg-row linshen" style="margin:6px 14px"><div class="msg-name linshen">林深</div><div class="bubble-wrap"><div class="bubble linshen"><div class="bubble-text">${escHtml(m.dialogue)}</div></div>${m.action?`<div class="action-desc open"><div class="action-text">${escHtml(m.action)}</div></div>`:''}</div></div>`; if(m.type==='player') return `<div class="msg-row player" style="margin:6px 14px"><div class="msg-name player">${PLAYER_NAME}</div><div class="bubble-wrap"><div class="bubble player"><div class="bubble-text">${escHtml(m.dialogue)}</div></div>${m.action?`<div class="player-action">（${escHtml(m.action)}）</div>`:''}</div></div>`; return ''; }).join(''); }
+function restartGame() { localStorage.removeItem('hive_game_save'); clearInterval(timerInterval); location.reload(); }
+
+// ==================== 计时与存档 ====================
+let timerInterval=null, warned5h=false, warned1h=false;
+function startTimer() {
+  G.lastTick=Date.now();
+  timerInterval=setInterval(()=>{
+    const now=Date.now(); const delta=Math.floor((now-G.lastTick)/1000); G.lastTick=now; G.onlineSeconds+=delta;
+    const remain=86400-G.onlineSeconds; const h=Math.floor(remain/3600),m=Math.floor((remain%3600)/60);
+    const timerEl=document.getElementById('info-timer'); if(timerEl) timerEl.textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    if(!warned5h && remain<=18000){ warned5h=true; document.getElementById('tw-text').innerText='你只剩下5小时。\n林深的计划还在推进。\n你还有机会。'; document.getElementById('timer-warning').style.display='flex'; }
+    if(!warned1h && remain<=3600){ warned1h=true; document.getElementById('tw-text').innerText='只剩1小时了。\n这是最后的机会。'; document.getElementById('timer-warning').style.display='flex'; }
+    if(remain<=0 && !G.endingTriggered) triggerEnding();
+    if(Math.floor(G.onlineSeconds/900) > Math.floor((G.onlineSeconds-delta)/900)){ G.plan=Math.min(98,G.plan+1); updateUI(); checkPhaseAndEvents(); saveGame(); }
+    saveGame();
+  },1000);
+}
+function saveGame() { try{ const save={G:{trust:G.trust,anchor:G.anchor,plan:G.plan,phase:G.phase,gameDate:G.gameDate.toISOString(),onlineSeconds:G.onlineSeconds,currentLoc:G.currentLoc,currentTime:G.currentTime,triggeredEvents:G.triggeredEvents,linshenMood:G.linshenMood,linshenGuard:G.linshenGuard,linshenOpen:G.linshenOpen,collected:G.collected,diary:G.diary,npcLogs:G.npcLogs,chatHistory:G.chatHistory.slice(-30),memorySummaries:G.memorySummaries,coreMemories:G.coreMemories,unlockedLocs:Array.from(G.unlockedLocs),hospitalUnlocked:G.hospitalUnlocked,endingTriggered:G.endingTriggered,warned5h,warned1h},playerName:PLAYER_NAME,apiKey:API_KEY,lang}; localStorage.setItem('hive_game_save',JSON.stringify(save)); }catch(e){} }
+function loadGame() { try{ const raw=localStorage.getItem('hive_game_save'); if(!raw) return false; const save=JSON.parse(raw); Object.assign(G,save.G); G.gameDate=new Date(save.G.gameDate); G.unlockedLocs=new Set(save.G.unlockedLocs||[]); G.allMessages=[]; warned5h=save.G.warned5h||false; warned1h=save.G.warned1h||false; PLAYER_NAME=save.playerName||'时鹿'; API_KEY=save.apiKey||''; lang=save.lang||'zh'; currentWeather=getWeather(G.gameDate); return true; }catch(e){ return false; } }
+function startNewGame() { const nameInput=document.getElementById('player-name-input').value.trim(); const apiInput=document.getElementById('api-key-input').value.trim(); if(!apiInput||!apiInput.startsWith('sk-')){ showError('请输入有效的API Key'); return; } PLAYER_NAME=nameInput||'时鹿'; API_KEY=apiInput; Object.assign(G,{trust:0,anchor:0,plan:8,phase:1,gameDate:new Date('2016-09-01'),onlineSeconds:0,currentLoc:'library',currentTime:'午后',triggeredEvents:[],linshenMood:'专注·疏离',linshenGuard:90,linshenOpen:5,collected:[],diary:[],npcLogs:[],chatHistory:[],memorySummaries:[],coreMemories:[],allMessages:[],unlockedLocs:new Set(['library','lab','cafeteria','path','rooftop','cafe','orphan','convenience']),hospitalUnlocked:false,endingTriggered:false,passersby:[]}); warned5h=false; warned1h=false; enterGame(); }
+function continueGame() { if(!loadGame()){ showError('没有找到存档'); return; } const apiInput=document.getElementById('api-key-input').value.trim(); if(apiInput && apiInput.startsWith('sk-')) API_KEY=apiInput; enterGame(); }
+function enterGame() {
+  document.getElementById('cover-screen').style.display='none'; const gs=document.getElementById('game-screen'); if(gs) gs.style.display='flex';
+  document.getElementById('player-name-display').innerHTML=PLAYER_NAME.split('').join(' ');
+  updateUI(); updateInfoBar(); renderDiary(); renderNPCLogs(); renderRemainingMainline();
+  if(G.hospitalUnlocked) document.getElementById('loc-hospital')?.classList.remove('locked');
+  if(G.unlockedLocs.has('your-home')) document.getElementById('loc-yourhome')?.classList.remove('locked');
+  if(G.unlockedLocs.has('linshen-home')) document.getElementById('loc-lshome')?.classList.remove('locked');
+  startTimer();
+  if(G.allMessages.length===0){
+    addNarratorMsg(`2016年9月1日。开学第一天。`);
+    addNarratorMsg(`你是${PLAYER_NAME}，24岁，T大进修生。陈院长的孙女。`);
+    addNarratorMsg(`林深考进了T大。你知道他在这里，他也知道你在这里。`);
+    addNarratorMsg(`他主动与你保持距离。七年了，你们都改变了很多，也都没有改变。`);
+    addEnvMsg(`九月的晴天。校园里到处是新生。你站在图书馆门口，远远地看到了他。`);
+    addSystemMsg('[ 选择场所和时间，点击【前往】开始行动 ]');
+    addSystemMsg('[ 对话时，用（动作）来描述你的动作或神态 ]');
+  }
+}
+function updatePhase() { const names={1:'第一幕·疏离',2:'第二幕·试探',3:'第三幕·裂缝',4:'第四幕·烈火',5:'第五幕·终局'}; const badge=document.getElementById('phase-badge'); if(badge) badge.textContent=names[G.phase]||''; }
+function handleKey(e) { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); } }
+function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; }
+
+const I18N={zh:{'lbl-trust':'攻略值','lbl-anchor':'锚定值','lbl-plan':'计划进度','lbl-tab-action':'行动','lbl-tab-dialogue':'对话','lbl-name':'// 你的名字','lbl-zone-tda':'T大区','lbl-zone-out':'校外区','lbl-zone-priv':'私人空间','lbl-time-sel':'时间段','lbl-npc':'联系他人','lbl-input-hint':'用（动作/神态）来描述你的行为 · Enter发送','lbl-sb-title':'档案室','lbl-st-intel':'情报','lbl-st-main':'主线','lbl-st-chars':'人物','lbl-st-collect':'收藏','lbl-st-diary':'日记','lbl-st-npc':'联系记录'},en:{'lbl-trust':'Trust','lbl-anchor':'Bond','lbl-plan':'Plan','lbl-tab-action':'Action','lbl-tab-dialogue':'Chat','lbl-name':'// Your Name','lbl-zone-tda':'Campus','lbl-zone-out':'Off-campus','lbl-zone-priv':'Private','lbl-time-sel':'Time','lbl-npc':'Contact','lbl-input-hint':'Use （actions） for gestures · Enter to send','lbl-sb-title':'Archive','lbl-st-intel':'Intel','lbl-st-main':'Plot','lbl-st-chars':'People','lbl-st-collect':'Saved','lbl-st-diary':'Diary','lbl-st-npc':'Contacts'}};
+function toggleLang(){ lang=lang==='zh'?'en':'zh'; const dict=I18N[lang]; Object.entries(dict).forEach(([id,text])=>{ const el=document.getElementById(id); if(el) el.textContent=text; }); }
+
+document.getElementById('start-btn').onclick = startNewGame;
+document.getElementById('continue-btn').onclick = continueGame;
+if(localStorage.getItem('hive_game_save')) document.getElementById('continue-btn').style.display = 'block';
+</script>
+</body>
+</html>
